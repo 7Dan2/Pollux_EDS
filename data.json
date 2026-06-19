@@ -1,0 +1,62 @@
+[
+  {
+    "id": "72041R0930xxx83001",
+    "site": "CMP",
+    "batiment": "0093",
+    "piece": "",
+    "typeEDS": "BAES / BAEH",
+    "marque": "URA",
+    "modele": "",
+    "numSerie": "",
+    "anneeFab": "2017",
+    "anneePose": "",
+    "refAccus": "",
+    "dateControle": "",
+    "etat": "OK"
+  },
+  {
+    "id": "72041R0930xxx83002",
+    "site": "CMP",
+    "batiment": "0093",
+    "piece": "xxx - porte côté Est",
+    "typeEDS": "BAES / BAEH",
+    "marque": "URA",
+    "modele": "188 418",
+    "numSerie": "",
+    "anneeFab": "2017",
+    "anneePose": "",
+    "refAccus": "",
+    "dateControle": "",
+    "etat": "Défaillant"
+  },
+  {
+    "id": "72041R0930xxx83003",
+    "site": "CMP",
+    "batiment": "0093",
+    "piece": "xxx - porte côté Est sas",
+    "typeEDS": "BAES / BAEH",
+    "marque": "URA",
+    "modele": "188 418",
+    "numSerie": "",
+    "anneeFab": "2017",
+    "anneePose": "",
+    "refAccus": "",
+    "dateControle": "",
+    "etat": "OK"
+  },
+  {
+    "id": "72041R0930xxx83004",
+    "site": "CMP",
+    "batiment": "0093",
+    "piece": "xxx - couloir Nord",
+    "typeEDS": "BAES / BAEH",
+    "marque": "URA",
+    "modele": "188 418",
+    "numSerie": "",
+    "anneeFab": "2017",
+    "anneePose": "",
+    "refAccus": "",
+    "dateControle": "",
+    "etat": "OK"
+  }
+]
