@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lumière Enchantée</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body { font-family: 'Segoe UI', system-ui, sans-serif; }
+    .splash { animation: fadeOut 2.8s forwards 1.5s; }
+    @keyframes fadeOut { to { opacity: 0; pointer-events: none; } }
+    .modal { animation: modalPop 0.3s ease; }
+    @keyframes modalPop { from { transform: scale(0.95); opacity: 0; } }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
+
+  <!-- Splash -->
+  <div id="splash" class="splash fixed inset-0 bg-gradient-to-br from-amber-500 to-orange-600 flex flex-col items-center justify-center z-50">
+    <i class="fa-solid fa-lightbulb text-8xl text-white mb-6 animate-pulse"></i>
+    <h1 class="text-5xl font-bold text-white">Lumière</h1>
+    <p class="text-2xl text-white/90">Enchantée</p>
+  </div>
+
+  <!-- Nav -->
+  <nav class="bg-white dark:bg-gray-900 border-b sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-lightbulb text-3xl text-amber-500"></i>
+          <span class="font-semibold text-xl">Lumière Enchantée</span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <button onclick="switchView(0)" id="btn-terrain" 
+                  class="px-6 py-2.5 rounded-2xl font-medium flex items-center gap-2 active-view">
+            <i class="fa-solid fa-list-check"></i><span class="hidden sm:inline">Terrain</span>
+          </button>
+          <button onclick="switchView(1)" id="btn-dashboard"
+                  class="px-6 py-2.5 rounded-2xl font-medium flex items-center gap-2">
+            <i class="fa-solid fa-chart-column"></i><span class="hidden sm:inline">Dashboard</span>
+          </button>
+          
+          <button onclick="manualSaveToGitHub()" 
+                  class="ml-3 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 font-medium">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span class="hidden sm:inline">Sauvegarder GitHub</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto p-4 pb-20">
+
+    <!-- VUE TERRAIN -->
+    <div id="view-terrain">
+      <div class="flex flex-col sm:flex-row gap-3 mb-6">
+        <input type="text" id="search" placeholder="Rechercher par ID, bâtiment, modèle..." 
+               class="flex-1 px-5 py-4 border border-gray-300 dark:border-gray-700 rounded-3xl focus:outline-none focus:border-amber-500 text-base">
+        
+        <button onclick="showAddModal()" 
+                class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-4 rounded-3xl flex items-center gap-3 font-medium whitespace-nowrap">
+          <i class="fa-solid fa-plus"></i>
+          <span>Nouvel équipement</span>
+        </button>
+      </div>
+
+      <div class="bg-white dark:bg-gray-900 rounded-3xl shadow overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="text-left p-4">ID</th>
+              <th class="text-left p-4">Site / Bât.</th>
+              <th class="text-left p-4 hidden md:table-cell">Pièce</th>
+              <th class="text-left p-4">Modèle</th>
+              <th class="text-center p-4">État</th>
+              <th class="text-center p-4 w-20">Action</th>
+            </tr>
+          </thead>
+          <tbody id="table-body" class="divide-y"></tbody>
+        </table>
+      </div>
+    </div>
+
+
+ <!-- === VUE STATISTIQUES === -->
+    <div id="view-dashboard">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
+          <p class="text-gray-500">Total équipements</p>
+          <p id="total" class="text-5xl font-bold mt-2">0</p>
+        </div>
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
+          <p class="text-red-600">Défaillants</p>
+          <p id="defaillants" class="text-5xl font-bold mt-2 text-red-600">0</p>
+        </div>
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
+          <p class="text-green-600">Conformité</p>
+          <p id="conformite" class="text-5xl font-bold mt-2 text-green-600">100%</p>
+        </div>
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
+          <p class="text-gray-500">Dernier contrôle</p>
+          <p id="last-control" class="text-2xl font-medium mt-2">—</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Répartition par état -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
+          <h3 class="font-semibold mb-4">État des équipements</h3>
+          <canvas id="etatChart" height="180"></canvas>
+        </div>
+
+        <!-- Répartition par site -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
+          <h3 class="font-semibold mb-4">Équipements par site</h3>
+          <canvas id="siteChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- Liste des défaillants -->
+      <div class="mt-8">
+        <h3 class="font-semibold mb-4 text-red-600 flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Équipements défaillants
+        </h3>
+        <div id="list-defaillants" class="bg-white dark:bg-gray-900 rounded-3xl shadow divide-y"></div>
+      </div>
+    </div>
+  </div>
+
+    <!-- VUE DASHBOARD -->
+    <!-- <div id="view-dashboard" class="hidden">
+      <p class="text-center text-gray-500 py-20">Dashboard en cours de développement...</p>
+    </div>
+  </div> -->
+
+  <!-- MODAL -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div class="modal bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-auto">
+      <div class="p-6 border-b dark:border-gray-700 flex items-center justify-between">
+        <h2 id="modal-title" class="text-2xl font-semibold">Nouvel équipement</h2>
+        <button onclick="closeModal()" class="text-3xl leading-none text-gray-400 hover:text-gray-600">×</button>
+      </div>
+      
+      <div class="p-6 space-y-5" id="modal-form"></div>
+
+      <div class="p-6 border-t dark:border-gray-700 flex gap-3">
+        <button onclick="closeModal()" class="flex-1 py-4 text-lg font-medium border border-gray-300 dark:border-gray-700 rounded-2xl">Annuler</button>
+        <button onclick="saveEquipment()" class="flex-1 py-4 text-lg font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-2xl">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // let equipments = [];
+    let currentEditId = null;
+
+    const fields = [
+      {key: "id", label: "ID", type: "text", required: true},
+      {key: "site", label: "Site", type: "text", required: true},
+      {key: "batiment", label: "N° Bâtiment", type: "text", required: true},
+      {key: "piece", label: "N° Pièce", type: "text"},
+      {key: "typeEDS", label: "Type d'EDS", type: "text", required: true},
+      {key: "marque", label: "Marque", type: "text"},
+      {key: "modele", label: "Modèle", type: "text", required: true},
+      {key: "numSerie", label: "N° Série", type: "text"},
+      {key: "anneeFab", label: "Année Fabrication", type: "number"},
+      {key: "anneePose", label: "Année Pose", type: "number"},
+      {key: "refAccus", label: "Référence Accus", type: "text"},
+      {key: "dateControle", label: "Date dernier contrôle", type: "date"},
+      {key: "etat", label: "État opérationnel", type: "select", options: ["OK", "Défaillant", "À réparer", "Hors service"]}
+    ];
+
+    function createForm() {
+      const container = document.getElementById('modal-form');
+      container.innerHTML = '';
+      fields.forEach(field => {
+        const div = document.createElement('div');
+        div.innerHTML = `<label class="block text-sm font-medium mb-1.5">${field.label}</label>`;
+        
+        let input;
+        if (field.type === 'select') {
+          input = document.createElement('select');
+          input.className = "w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-2xl";
+          field.options.forEach(opt => {
+            const o = document.createElement('option');
+            o.value = opt; o.textContent = opt;
+            input.appendChild(o);
+          });
+        } else {
+          input = document.createElement('input');
+          input.type = field.type;
+          input.className = "w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-2xl";
+        }
+        input.id = `field-${field.key}`;
+        if (field.required) input.required = true;
+        div.appendChild(input);
+        container.appendChild(div);
+      });
+    }
+
+    function showAddModal() {
+      currentEditId = null;
+      document.getElementById('modal-title').textContent = "Nouvel équipement";
+      createForm();
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function editEquipment(id) {
+      currentEditId = id;
+      document.getElementById('modal-title').textContent = "Modifier l'équipement";
+      createForm();
+      
+      const eq = equipments.find(e => e.id === id);
+      if (eq) {
+        fields.forEach(f => {
+          const el = document.getElementById(`field-${f.key}`);
+          if (el) el.value = eq[f.key] || '';
+        });
+      }
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function saveEquipment() {
+      const newEq = {};
+      fields.forEach(field => {
+        const el = document.getElementById(`field-${field.key}`);
+        newEq[field.key] = el ? el.value : '';
+      });
+
+      if (currentEditId) {
+        const index = equipments.findIndex(e => e.id === currentEditId);
+        if (index !== -1) equipments[index] = newEq;
+      } else {
+        equipments.push(newEq);
+      }
+
+      saveToLocalStorage();
+      closeModal();
+      renderTable(equipments);
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+      data.forEach(eq => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 dark:hover:bg-gray-800";
+        tr.innerHTML = `
+          <td class="p-4 font-medium">${eq.id}</td>
+          <td class="p-4">${eq.site}<br><span class="text-sm text-gray-500">${eq.batiment}</span></td>
+          <td class="p-4 hidden md:table-cell">${eq.piece || '-'}</td>
+          <td class="p-4">${eq.marque ? eq.marque+' ' : ''}${eq.modele}</td>
+          <td class="p-4 text-center">
+            <span class="px-4 py-1 rounded-2xl text-sm font-medium ${eq.etat === 'OK' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+              ${eq.etat || 'Inconnu'}
+            </span>
+          </td>
+          <td class="p-4 text-center">
+            <button onclick="editEquipment('${eq.id}')" class="text-amber-600 hover:text-amber-800 text-xl">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('lumench_equipments', JSON.stringify(equipments));
+    }
+
+    function manualSaveToGitHub() {
+      saveToLocalStorage();
+      const dataStr = JSON.stringify(equipments, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      alert("✅ data.json téléchargé !\nRemplace le fichier sur GitHub.");
+    }
+
+    function switchView(view) {
+      document.getElementById('view-terrain').classList.toggle('hidden', view !== 0);
+      document.getElementById('view-dashboard').classList.toggle('hidden', view !== 1);
+    }
+
+
+
+let equipments = [];
+    let etatChart, siteChart;
+
+    function switchView(view) {
+      document.getElementById('view-terrain').classList.toggle('hidden', view !== 0);
+      document.getElementById('view-dashboard').classList.toggle('hidden', view !== 1);
+      
+      if (view === 1) updateDashboard();
+    }
+
+    function updateDashboard() {
+      const total = equipments.length;
+      const defaillants = equipments.filter(e => e.etat !== "OK").length;
+      const conformite = total ? Math.round((total - defaillants) / total * 100) : 100;
+
+      document.getElementById('total').textContent = total;
+      document.getElementById('defaillants').textContent = defaillants;
+      document.getElementById('conformite').textContent = conformite + "%";
+
+      // Graphique États
+      const etats = {};
+      equipments.forEach(e => {
+        etats[e.etat] = (etats[e.etat] || 0) + 1;
+      });
+
+      if (etatChart) etatChart.destroy();
+      etatChart = new Chart(document.getElementById('etatChart'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(etats),
+          datasets: [{ data: Object.values(etats), backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#6b7280'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Graphique Sites
+      const sites = {};
+      equipments.forEach(e => {
+        sites[e.site] = (sites[e.site] || 0) + 1;
+      });
+
+      if (siteChart) siteChart.destroy();
+      siteChart = new Chart(document.getElementById('siteChart'), {
+        type: 'bar',
+        data: {
+          labels: Object.keys(sites),
+          datasets: [{ label: 'Équipements', data: Object.values(sites), backgroundColor: '#d97706' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Liste défaillants
+      const container = document.getElementById('list-defaillants');
+      container.innerHTML = '';
+      const def = equipments.filter(e => e.etat !== "OK");
+      
+      if (def.length === 0) {
+        container.innerHTML = `<p class="p-8 text-center text-green-600">Aucun équipement défaillant 🎉</p>`;
+        return;
+      }
+
+      def.forEach(eq => {
+        const div = document.createElement('div');
+        div.className = "p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800";
+        div.innerHTML = `
+          <div>
+            <span class="font-medium">${eq.id}</span> — ${eq.site} ${eq.batiment} ${eq.piece ? '('+eq.piece+')' : ''}
+            <div class="text-sm text-gray-500">${eq.modele}</div>
+          </div>
+          <button onclick="editEquipment('${eq.id}'); switchView(0)" 
+                  class="text-amber-600 hover:text-amber-700">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+
+
+
+
+    // Auto-save avant fermeture
+    window.addEventListener('beforeunload', () => {
+      saveToLocalStorage();
+    });
+
+    // Initialisation
+    window.onload = () => {
+      const saved = localStorage.getItem('lumench_equipments');
+      if (saved) equipments = JSON.parse(saved);
+      
+      if (equipments.length === 0) {
+        equipments = [
+          {id: "LE-001", site: "Site Nord", batiment: "A1", piece: "102", typeEDS: "Bloc autonome", marque: "Philips", modele: "LED 3W", numSerie: "PH12345", anneeFab: "2022", anneePose: "2023", refAccus: "BAT-12V-7Ah", dateControle: "2026-05-15", etat: "OK"}
+        ];
+      }
+      
+      renderTable(equipments);
+    };
+  </script>
+</body>
+</html>
