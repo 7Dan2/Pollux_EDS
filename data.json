@@ -58,5 +58,20 @@
     "refAccus": "",
     "dateControle": "",
     "etat": "OK"
+  },
+  {
+    "id": "72041R0930xxx83005",
+    "site": "CMP",
+    "batiment": "0093",
+    "piece": "xxx - couloir Nord",
+    "typeEDS": "BAES / BAEH",
+    "marque": "URA",
+    "modele": "188 418",
+    "numSerie": "",
+    "anneeFab": "2017",
+    "anneePose": "",
+    "refAccus": "",
+    "dateControle": "",
+    "etat": "OK"
   }
 ]
