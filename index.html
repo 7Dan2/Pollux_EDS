@@ -3,24 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lumière Enchantée</title>
+  <title>Margote - EDS</title>
+    <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js - IMPORTANT : avant ton script principal -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  
+  
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
-    body { font-family: 'Segoe UI', system-ui, sans-serif; }
-    .splash { animation: fadeOut 2.8s forwards 1.5s; }
-    @keyframes fadeOut { to { opacity: 0; pointer-events: none; } }
-    .modal { animation: modalPop 0.3s ease; }
-    @keyframes modalPop { from { transform: scale(0.95); opacity: 0; } }
+    body { 
+    font-family: 'Segoe UI', system-ui, sans-serif; 
+  }
+
+  .splash { animation: fadeOut 2.8s forwards 1.5s; }
+  @keyframes fadeOut { to { opacity: 0; pointer-events: none; } }
+  .modal { animation: modalPop 0.3s ease; }
+  @keyframes modalPop { from { transform: scale(0.95); opacity: 0; } }
+
+  /* Forcer le style des formulaires */
+  input, select, textarea {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+  }
+
+  .dark input, 
+  .dark select, 
+  .dark textarea {
+    background-color: #374151 !important;
+    color: #f3f4f6 !important;
+    border-color: #6b7280 !important;
+  }
+
+  .dark input:focus, 
+  .dark select:focus, 
+  .dark textarea:focus {
+    border-color: #fbbf24 !important;
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3) !important;
+  }
+
   </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
+<body class="bg-gray-50 dark:bg-gray-900 text-white dark:text-white min-h-screen">
 
   <!-- Splash -->
   <div id="splash" class="splash fixed inset-0 bg-gradient-to-br from-amber-500 to-orange-600 flex flex-col items-center justify-center z-50">
     <i class="fa-solid fa-lightbulb text-8xl text-white mb-6 animate-pulse"></i>
-    <h1 class="text-5xl font-bold text-white">Lumière</h1>
-    <p class="text-2xl text-white/90">Enchantée</p>
+    <h1 class="text-5xl font-bold text-white">Margote</h1>
+    <p class="text-2xl text-white/90">Gestion des EDS</p>
   </div>
 
   <!-- Nav -->
@@ -29,7 +65,7 @@
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center gap-3">
           <i class="fa-solid fa-lightbulb text-3xl text-amber-500"></i>
-          <span class="font-semibold text-xl">Lumière Enchantée</span>
+          <span class="font-semibold text-xl">Margote - Gestion des EDS</span>
         </div>
         
         <div class="flex items-center gap-2">
@@ -42,6 +78,12 @@
             <i class="fa-solid fa-chart-column"></i><span class="hidden sm:inline">Dashboard</span>
           </button>
           
+           <button onclick="exportCSV()" 
+                  class="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 font-medium">
+            <i class="fa-solid fa-file-csv"></i>
+            <span class="hidden sm:inline">Export CSV</span>
+          </button>
+
           <button onclick="manualSaveToGitHub()" 
                   class="ml-3 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 font-medium">
             <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -86,7 +128,12 @@
 
 
  <!-- === VUE STATISTIQUES === -->
-    <div id="view-dashboard">
+  
+ 
+ 
+ 
+ 
+ <div id="view-dashboard">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
           <p class="text-gray-500">Total équipements</p>
@@ -106,19 +153,33 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Répartition par état -->
-        <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
-          <h3 class="font-semibold mb-4">État des équipements</h3>
-          <canvas id="etatChart" height="180"></canvas>
-        </div>
+     
 
-        <!-- Répartition par site -->
-        <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
-          <h3 class="font-semibold mb-4">Équipements par site</h3>
-          <canvas id="siteChart" height="180"></canvas>
-        </div>
-      </div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+  <!-- Doughnut -->
+  <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
+    <h3 class="font-semibold mb-4">État des équipements</h3>
+    <div class="h-64 flex items-center justify-center">   <!-- Hauteur fixe + centrage -->
+      <canvas id="etatChart" class="max-h-full"></canvas>
+    </div>
+  </div>
+
+  <!-- Barres -->
+  <div class="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow">
+    <h3 class="font-semibold mb-4">Équipements par site</h3>
+    <div class="h-64 flex items-center justify-center">   <!-- Hauteur fixe + centrage -->
+      <canvas id="siteChart" class="max-h-full"></canvas>
+    </div>
+  </div>
+
+</div>
+
+
+
+
+       
 
       <!-- Liste des défaillants -->
       <div class="mt-8">
@@ -137,8 +198,34 @@
     </div>
   </div> -->
 
-  <!-- MODAL -->
+ <!-- MODAL mise à jour -->
   <div id="modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div class="modal bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-auto">
+      <div class="p-6 border-b dark:border-gray-700 flex items-center justify-between">
+        <h2 id="modal-title" class="text-2xl font-semibold">Nouvel équipement</h2>
+        <button onclick="closeModal()" class="text-3xl leading-none text-gray-400 hover:text-gray-600">×</button>
+      </div>
+      
+      <div class="p-6 space-y-5" id="modal-form"></div>
+
+      <div class="p-6 border-t dark:border-gray-700 flex flex-wrap gap-3">
+        <button onclick="closeModal()" class="flex-1 py-4 text-lg font-medium border border-gray-300 dark:border-gray-700 rounded-2xl">Annuler</button>
+        <button onclick="saveEquipment()" class="flex-1 py-4 text-lg font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-2xl">Enregistrer</button>
+        
+        <!-- Bouton Dupliquer (visible uniquement en édition) -->
+        <button id="btn-dupliquer" onclick="duplicateEquipment()" 
+                class="hidden w-full mt-2 py-4 text-lg font-medium border border-dashed border-amber-400 text-amber-600 rounded-2xl hover:bg-amber-50">
+          <i class="fa-solid fa-copy mr-2"></i>
+          Dupliquer cet équipement
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- MODAL -->
+  <!-- <div id="modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
     <div class="modal bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-auto">
       <div class="p-6 border-b dark:border-gray-700 flex items-center justify-between">
         <h2 id="modal-title" class="text-2xl font-semibold">Nouvel équipement</h2>
@@ -152,7 +239,7 @@
         <button onclick="saveEquipment()" class="flex-1 py-4 text-lg font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-2xl">Enregistrer</button>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <script>
     // let equipments = [];
@@ -167,62 +254,97 @@
       {key: "marque", label: "Marque", type: "text"},
       {key: "modele", label: "Modèle", type: "text", required: true},
       {key: "numSerie", label: "N° Série", type: "text"},
+      {key: "autreRef", label: "Autre référence", type: "text"},
       {key: "anneeFab", label: "Année Fabrication", type: "number"},
       {key: "anneePose", label: "Année Pose", type: "number"},
       {key: "refAccus", label: "Référence Accus", type: "text"},
       {key: "dateControle", label: "Date dernier contrôle", type: "date"},
-      {key: "etat", label: "État opérationnel", type: "select", options: ["OK", "Défaillant", "À réparer", "Hors service"]}
+      {key: "etat", label: "État opérationnel", type: "select", options: ["OK", "Défaillant", "À réparer", "Hors service"]},
+      {key: "commentaires", label: "Commentaires", type: "textarea"}
     ];
 
-    function createForm() {
+     function createForm(preFillData = {}) {
       const container = document.getElementById('modal-form');
       container.innerHTML = '';
+
       fields.forEach(field => {
         const div = document.createElement('div');
         div.innerHTML = `<label class="block text-sm font-medium mb-1.5">${field.label}</label>`;
-        
+
         let input;
-        if (field.type === 'select') {
+        if (field.type === 'textarea') {
+          input = document.createElement('textarea');
+          input.rows = 3;
+        } else if (field.type === 'select') {
           input = document.createElement('select');
-          input.className = "w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-2xl";
+        } else {
+          input = document.createElement('input');
+          input.type = field.type;
+        }
+
+        input.id = `field-${field.key}`;
+        input.className = "w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-2xl focus:outline-none focus:border-amber-500";
+        if (field.required) input.required = true;
+
+        if (field.type === 'select') {
           field.options.forEach(opt => {
             const o = document.createElement('option');
             o.value = opt; o.textContent = opt;
             input.appendChild(o);
           });
-        } else {
-          input = document.createElement('input');
-          input.type = field.type;
-          input.className = "w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-2xl";
         }
-        input.id = `field-${field.key}`;
-        if (field.required) input.required = true;
+
+        if (preFillData[field.key] !== undefined) {
+          input.value = preFillData[field.key];
+        }
+
         div.appendChild(input);
         container.appendChild(div);
       });
     }
 
+
+
     function showAddModal() {
       currentEditId = null;
       document.getElementById('modal-title').textContent = "Nouvel équipement";
+      document.getElementById('btn-dupliquer').classList.add('hidden');
       createForm();
       document.getElementById('modal').classList.remove('hidden');
     }
 
+
     function editEquipment(id) {
       currentEditId = id;
       document.getElementById('modal-title').textContent = "Modifier l'équipement";
-      createForm();
+      document.getElementById('btn-dupliquer').classList.remove('hidden');
       
       const eq = equipments.find(e => e.id === id);
-      if (eq) {
-        fields.forEach(f => {
-          const el = document.getElementById(`field-${f.key}`);
-          if (el) el.value = eq[f.key] || '';
-        });
-      }
+      createForm(eq || {});
       document.getElementById('modal').classList.remove('hidden');
     }
+
+
+    function duplicateEquipment() {
+      if (!currentEditId) return;
+      
+      const currentEq = equipments.find(e => e.id === currentEditId);
+      if (!currentEq) return;
+
+      // Enregistrer d'abord l'équipement actuel
+      saveEquipment();
+
+      // Ouvrir une nouvelle modale avec les données copiées (sauf ID)
+      const copyData = {...currentEq};
+      delete copyData.id; // On laisse l'ID vide pour forcer une nouvelle saisie
+
+      currentEditId = null;
+      document.getElementById('modal-title').textContent = "Nouvel équipement (dupliqué)";
+      document.getElementById('btn-dupliquer').classList.add('hidden');
+      createForm(copyData);
+    }
+
+
 
     function saveEquipment() {
       const newEq = {};
@@ -241,6 +363,7 @@
       saveToLocalStorage();
       closeModal();
       renderTable(equipments);
+      if (!document.getElementById('view-dashboard').classList.contains('hidden')) updateDashboard();
     }
 
     function closeModal() {
@@ -277,6 +400,57 @@
       localStorage.setItem('lumench_equipments', JSON.stringify(equipments));
     }
 
+
+// ==================== NOUVEAU : EXPORT CSV ====================
+    function exportCSV() {
+      if (equipments.length === 0) {
+        alert("Aucune donnée à exporter.");
+        return;
+      }
+
+      const headers = [
+        "ID", "Site", "Bâtiment", "Pièce", "Type EDS", "Marque", "Modèle", 
+        "Numéro Série", "Année Fabrication", "Année Pose", "Référence Accus", 
+        "Date dernier contrôle", "État opérationnel"
+      ];
+
+      let csvContent = headers.join(";") + "\n";
+
+      equipments.forEach(eq => {
+        const row = [
+          eq.id || "",
+          eq.site || "",
+          eq.batiment || "",
+          eq.piece || "",
+          eq.typeEDS || "",
+          eq.marque || "",
+          eq.modele || "",
+          eq.numSerie || "",
+          eq.anneeFab || "",
+          eq.anneePose || "",
+          eq.refAccus || "",
+          eq.dateControle || "",
+          eq.etat || ""
+        ].map(field => `"${String(field).replace(/"/g, '""')}"`); // Gestion des guillemets
+
+        csvContent += row.join(";") + "\n";
+      });
+
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // BOM pour Excel
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `lumench_export_${new Date().toISOString().slice(0,10)}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      alert("✅ Export CSV réussi !\nVous pouvez l'ouvrir directement dans Excel.");
+    }
+
+
+    // ==================== SAUVEGARDE JSON ====================
     function manualSaveToGitHub() {
       saveToLocalStorage();
       const dataStr = JSON.stringify(equipments, null, 2);
@@ -345,8 +519,20 @@ let equipments = [];
           labels: Object.keys(sites),
           datasets: [{ label: 'Équipements', data: Object.values(sites), backgroundColor: '#d97706' }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+            y: {
+                beginAtZero: true
+                }
+            }}
       });
+
+// nouveau
+
+
+// Fin nouveau
 
       // Liste défaillants
       const container = document.getElementById('list-defaillants');
@@ -391,7 +577,7 @@ let equipments = [];
       
       if (equipments.length === 0) {
         equipments = [
-          {id: "LE-001", site: "Site Nord", batiment: "A1", piece: "102", typeEDS: "Bloc autonome", marque: "Philips", modele: "LED 3W", numSerie: "PH12345", anneeFab: "2022", anneePose: "2023", refAccus: "BAT-12V-7Ah", dateControle: "2026-05-15", etat: "OK"}
+        //   {id: "72041R0010xxx01", site: "CMP", batiment: "0001", piece: "102", typeEDS: "BAES Evacuation", marque: "LEGRAND", modele: "625 25", numSerie: "PH12345", anneeFab: "2018", anneePose: "2023", refAccus: "BAT-12V-7Ah", dateControle: "2026-05-15", etat: "OK"}
         ];
       }
       
